@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HELENA — Centro de Control</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --bg2: #0d1424;
+      --card: rgba(16, 25, 45, 0.72);
+      --border: rgba(56, 189, 248, 0.22);
+      --cyan: #38bdf8;
+      --violet: #a78bfa;
+      --emerald: #34d399;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 15% 15%, #111c38 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.45;
+    }
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 22px 26px;
+      border-radius: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 0 40px rgba(56, 189, 248, 0.08);
+      margin-bottom: 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .orb {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--cyan), var(--violet), var(--emerald), var(--cyan));
+      padding: 3px;
+      animation: spin 8s linear infinite;
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.45);
+      flex-shrink: 0;
+    }
+    .orb-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--bg2);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--cyan);
+      animation: spin-rev 8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin-rev { to { transform: rotate(-360deg); } }
+    h1 {
+      font-size: 1.55rem;
+      letter-spacing: 0.06em;
+      background: linear-gradient(90deg, #fff, var(--cyan), var(--violet));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 3px;
+    }
+    .hud-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .clock-box {
+      text-align: right;
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: rgba(7, 11, 20, 0.65);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+    }
+    .clock-time {
+      font-size: 1.3rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--cyan);
+    }
+    .clock-loc {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+    .pill.ok { background: rgba(52, 211, 153, 0.12); color: var(--emerald); border-color: rgba(52, 211, 153, 0.35); }
+    .pill.warn { background: rgba(251, 191, 36, 0.12); color: var(--amber); border-color: rgba(251, 191, 36, 0.35); }
+    .pill.info { background: rgba(56, 189, 248, 0.12); color: var(--cyan); border-color: rgba(56, 189, 248, 0.35); }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(0.8); } }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover { color: #fff; border-color: var(--cyan); transform: translateY(-1px); }
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.22), rgba(167, 139, 250, 0.22));
+      color: #fff;
+      border-color: var(--cyan);
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.2);
+    }
+
+    .panel { display: none; animation: fadeIn 0.25s ease; }
+    .panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 18px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .card-val {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .card-sub {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+    .b-ok { background: rgba(52, 211, 153, 0.16); color: var(--emerald); }
+    .b-miss { background: rgba(251, 113, 133, 0.16); color: var(--rose); }
+    .b-next { background: rgba(167, 139, 250, 0.16); color: var(--violet); }
+
+    /* Progress bar */
+    .prog-wrap {
+      margin-bottom: 22px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+    .prog-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+    .bar-bg {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.16);
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      width: 28.5%;
+      background: linear-gradient(90deg, var(--cyan), var(--violet), var(--emerald));
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    /* Timeline / Phases */
+    .phase-list { display: grid; gap: 12px; }
+    .phase-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: rgba(13, 20, 36, 0.75);
+      border: 1px solid var(--border);
+    }
+    .phase-left { display: flex; align-items: center; gap: 14px; }
+    .phase-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--cyan);
+      flex-shrink: 0;
+    }
+    .phase-item.done .phase-num { background: rgba(52, 211, 153, 0.18); color: var(--emerald); }
+    .phase-name { font-weight: 700; font-size: 0.98rem; }
+    .phase-desc { font-size: 0.83rem; color: var(--muted); margin-top: 2px; }
+
+    /* Form / Profile editor */
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.06em; }
+    input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(7, 11, 20, 0.75);
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--cyan); }
+    .btn {
+      cursor: pointer;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.86rem;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      color: #06101e;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); opacity: 0.92; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid var(--border);
+    }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .toast {
+      margin-top: 10px;
+      font-size: 0.84rem;
+      color: var(--emerald);
+      min-height: 1.2em;
+    }
+
+    /* Tree */
+    .tree {
+      font-family: 'Cascadia Code', Consolas, monospace;
+      font-size: 0.86rem;
+      line-height: 1.75;
+      color: #cbd5e1;
+      background: rgba(7, 11, 20, 0.75);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      overflow-x: auto;
+    }
+    .tree .dir { color: var(--cyan); font-weight: 700; }
+    .tree .file { color: var(--emerald); }
+    .tree .note { color: var(--muted); }
+
+    /* Todo list */
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(7, 11, 20, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .todo-item input[type="checkbox"] { width: auto; accent-color: var(--emerald); }
+    .todo-item.checked span { text-decoration: line-through; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="orb"><div class="orb-inner">H</div></div>
+        <div>
+          <h1>HELENA OS</h1>
+          <div class="subtitle">Asistente personal local para Windows 11 · Workspace <code>C:\Jarvis</code></div>
+        </div>
+      </div>
+      <div class="hud-right">
+        <span class="pill ok"><span class="dot"></span>Helena v3 Pro · RTX 4060</span>
+        <span class="pill info"><span class="dot"></span>Ollama qwen2.5:7b + CUDA</span>
+        <div class="clock-box">
+          <div class="clock-time" id="clock">--:--:--</div>
+          <div class="clock-loc">Hora local</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="prog-wrap">
+      <div class="prog-top">
+        <strong>Progreso de Construcción</strong>
+        <span id="progLabel">7 / 7 Fases completadas (100%)</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" id="progBar" style="width:100%"></div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="diag">⚡ Diagnóstico (Fase 0)</button>
+      <button class="tab-btn" data-tab="profile">👤 Perfil Helena &amp; Stack</button>
+      <button class="tab-btn" data-tab="phases">🗺️ Hoja de Ruta</button>
+      <button class="tab-btn" data-tab="arch">📁 Estructura C:\Jarvis</button>
+    </div>
+
+    <!-- TAB 1: DIAGNÓSTICO -->
+    <section class="panel active" id="tab-diag">
+      <div class="grid">
+        <div class="card">
+          <div class="card-head"><span class="card-title">Sistema Operativo</span><span class="badge b-ok">OK</span></div>
+          <div class="card-val">Windows 11 Home 26H2</div>
+          <div class="card-sub">Build 26300.9974 · PowerShell 5.1</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Aceleración GPU</span><span class="badge b-ok">CUDA READY</span></div>
+          <div class="card-val">RTX 4060 Laptop GPU</div>
+          <div class="card-sub">8,188 MiB VRAM · Ideal para faster-whisper</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Python</span><span class="badge b-ok">OK</span></div>
+          <div class="card-val">Python 3.12.10</div>
+          <div class="card-sub">Listo para venv y puente de voz (Fase 5)</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Node.js</span><span class="badge b-ok">OK</span></div>
+          <div class="card-val">v24.16.0</div>
+          <div class="card-sub">Listo para servidores MCP (Fase 3)</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Git &amp; Winget</span><span class="badge b-ok">OK</span></div>
+          <div class="card-val">Git 2.52.0</div>
+          <div class="card-sub">winget.exe presente en WindowsApps</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Audio (Voz)</span><span class="badge b-ok">ACTIVO</span></div>
+          <div class="card-val">Mic + Altavoces</div>
+          <div class="card-sub">Microphone Array · Speakers detectados</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Antigravity IDE</span><span class="badge b-ok">OK</span></div>
+          <div class="card-val">v2.34.0.0</div>
+          <div class="card-sub">%LOCALAPPDATA%\Programs\Antigravity</div>
+        </div>
+        <div class="card" style="border-color: rgba(251,113,133,0.45);">
+          <div class="card-head"><span class="card-title">Antigravity CLI (agy)</span><span class="badge b-miss">FALTA</span></div>
+          <div class="card-val">No instalado en PATH</div>
+          <div class="card-sub">Requerido para modo headless en Fase 5 (o usar API Gemini)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: PERFIL HELENA -->
+    <section class="panel" id="tab-profile">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><span class="card-title">Datos Personales &amp; Enlaces</span><span class="badge b-ok">Editable</span></div>
+          <div class="field">
+            <label>Nombre / Asistente</label>
+            <input id="fName" value="Helena" />
+          </div>
+          <div class="field">
+            <label>Ciudad (Clima)</label>
+            <input id="fCity" placeholder="Tu ciudad, País" />
+          </div>
+          <div class="field">
+            <label>GitHub (URL o usuario)</label>
+            <input id="fGithub" placeholder="https://github.com/tu-usuario" />
+          </div>
+          <div class="field">
+            <label>LinkedIn (URL)</label>
+            <input id="fLinkedin" placeholder="https://linkedin.com/in/tu-perfil" />
+          </div>
+          <div class="field">
+            <label>Repositorios Locales (uno por línea)</label>
+            <textarea id="fRepos" rows="3" placeholder="C:\Users\tu-usuario\Projects\mi-repo"></textarea>
+          </div>
+          <div class="actions">
+            <button class="btn" id="btnSave">Guardar en navegador</button>
+            <button class="btn btn-ghost" id="btnCopyMd">Copiar Markdown para context.md</button>
+          </div>
+          <div class="toast" id="toast"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="card-title">Checklist Interactivo (TODO)</span><span class="badge b-next" id="todoCount">0/6</span></div>
+          <div id="todoList"></div>
+          <div style="display:flex; gap:8px; margin-top:12px;">
+            <input id="newTodo" placeholder="Agregar nueva tarea..." />
+            <button class="btn" id="btnAddTodo">+</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: HOJA DE RUTA -->
+    <section class="panel" id="tab-phases">
+      <div class="phase-list">
+        <div class="phase-item done">
+          <div class="phase-left">
+            <div class="phase-num">0</div>
+            <div>
+              <div class="phase-name">Fase 0 — Diagnóstico</div>
+              <div class="phase-desc">Hardware, software, GPU RTX 4060, audio y Antigravity verificados.</div>
+            </div>
+          </div>
+          <span class="badge b-ok">COMPLETADA</span>
+        </div>
+        <div class="phase-item done">
+          <div class="phase-left">
+            <div class="phase-num">1</div>
+            <div>
+              <div class="phase-name">Fase 1 — Estructura y Contexto</div>
+              <div class="phase-desc">C:\Jarvis, AGENTS.md, memoria, .antigravityignore, git y este dashboard.</div>
+            </div>
+          </div>
+          <span class="badge b-ok">COMPLETADA</span>
+        </div>
+        <div class="phase-item done">
+          <div class="phase-left">
+            <div class="phase-num">2</div>
+            <div>
+              <div class="phase-name">Fase 2 — Skills (.agents/skills/) · 9 activas</div>
+              <div class="phase-desc">Base (4): daily-briefing, pc-operator, dev-copilot, memory-manager · Ing. Software &amp; Automatización (5): git-workflow, code-review-qa, api-db-inspector, automation-builder, career-docs-engineer.</div>
+            </div>
+          </div>
+          <span class="badge b-ok">COMPLETADA</span>
+        </div>
+        <div class="phase-item done">
+          <div class="phase-left">
+            <div class="phase-num">3</div>
+            <div>
+              <div class="phase-name">Fase 3 — Servidores MCP</div>
+              <div class="phase-desc">Backup .bak + filesystem, powershell-safe y Playwright validados en vivo.</div>
+            </div>
+          </div>
+          <span class="badge b-ok">COMPLETADA</span>
+        </div>
+        <div class="phase-item done">
+          <div class="phase-left">
+            <div class="phase-num">4</div>
+            <div>
+              <div class="phase-name">Fase 4 — Arranque Automático 24/7</div>
+              <div class="phase-desc">scripts\start_helena.ps1 + interruptor HELENA_OFF + tarea Helena-Autostart en segundo plano.</div>
+            </div>
+          </div>
+          <span class="badge b-ok">COMPLETADA</span>
+        </div>
+        <div class="phase-item done">
+          <div class="phase-left">
+            <div class="phase-num">5</div>
+            <div>
+              <div class="phase-name">Fase 5 — Puente de Voz Pro + Avatar OOOOO</div>
+              <div class="phase-desc">Whisper CUDA (RTX 4060) + Ollama qwen2.5:7b + Oye/Hola Helena + 12 herramientas + modo inteligente.</div>
+            </div>
+          </div>
+          <span class="badge b-ok">COMPLETADA</span>
+        </div>
+        <div class="phase-item done">
+          <div class="phase-left">
+            <div class="phase-num">6</div>
+            <div>
+              <div class="phase-name">Fase 6 — Cierre y Entrega</div>
+              <div class="phase-desc">Tabla final, verificaciones, guía de desactivación y 5 comandos de prueba listos.</div>
+            </div>
+          </div>
+          <span class="badge b-ok">COMPLETADA</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: ESTRUCTURA -->
+    <section class="panel" id="tab-arch">
+      <div class="card">
+        <div class="card-head"><span class="card-title">Árbol de Workspace</span><span class="badge b-ok">C:\Jarvis</span></div>
+        <div class="tree">
+<span class="dir">C:\Jarvis\</span>
+├─ <span class="file">AGENTS.md</span>             <span class="note">← Identidad Helena, tono español técnico, reglas de seguridad</span>
+├─ <span class="file">dashboard.html</span>        <span class="note">← Este panel visual interactivo</span>
+├─ <span class="file">.antigravityignore</span>    <span class="note">← Excluye .venv, logs, binarios y modelos del contexto</span>
+├─ <span class="file">.gitignore</span>            <span class="note">← Protege .env, audios, logs y backups</span>
+├─ <span class="file">.env.example</span>          <span class="note">← Plantilla segura de variables</span>
+├─ <span class="dir">memory\</span>
+│  ├─ <span class="file">context.md</span>         <span class="note">← Perfil personal, ciudad, stack y hardware</span>
+│  ├─ <span class="file">inbox.md</span>           <span class="note">← Notas rápidas con fecha</span>
+│  ├─ <span class="file">TODO.md</span>            <span class="note">← Lista de pendientes</span>
+│  └─ <span class="file">progress.md</span>        <span class="note">← Resumen de avance por fase (máx. 10 líneas c/u)</span>
+├─ <span class="dir">.agents\skills\</span>       <span class="note">← Ruta oficial verificada para las 4 skills (Fase 2)</span>
+├─ <span class="dir">scripts\</span>              <span class="note">← start_jarvis.ps1 y voice_bridge.py (Fases 4-5)</span>
+└─ <span class="dir">logs\</span>                 <span class="note">← Registros de arranque y ejecución</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Reloj local en vivo
+    function updateClock() {
+      try {
+        const now = new Date();
+        const fmt = new Intl.DateTimeFormat('es-CL', {
+          timeZone: 'America/Santiago',
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        }).format(now);
+        document.getElementById('clock').textContent = fmt;
+      } catch {
+        document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+      }
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Persistencia local del perfil
+    const fields = ['fName', 'fCity', 'fGithub', 'fLinkedin', 'fRepos'];
+    const saved = JSON.parse(localStorage.getItem('helena_profile') || '{}');
+    fields.forEach(id => { if (saved[id]) document.getElementById(id).value = saved[id]; });
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      setTimeout(() => { t.textContent = ''; }, 3000);
+    }
+
+    document.getElementById('btnSave').addEventListener('click', () => {
+      const data = {};
+      fields.forEach(id => data[id] = document.getElementById(id).value.trim());
+      localStorage.setItem('helena_profile', JSON.stringify(data));
+      showToast('✅ Datos guardados localmente en este navegador.');
+    });
+
+    document.getElementById('btnCopyMd').addEventListener('click', async () => {
+      const name = document.getElementById('fName').value.trim() || 'Helena';
+      const city = document.getElementById('fCity').value.trim() || 'Tu ciudad';
+      const gh = document.getElementById('fGithub').value.trim() || '(pendiente)';
+      const li = document.getElementById('fLinkedin').value.trim() || '(pendiente)';
+      const repos = document.getElementById('fRepos').value.trim().split('\n').filter(Boolean).map(r => `  - \`${r.trim()}\``).join('\n');
+      const md = `## Identidad y Preferencias\n- **Nombre:** ${name}\n- **Ubicación:** ${city}\n\n## Stack, Perfiles y Proyectos\n- **GitHub:** ${gh}\n- **LinkedIn:** ${li}\n- **Repositorios locales:**\n${repos}`;
+      try {
+        await navigator.clipboard.writeText(md);
+        showToast('📋 Markdown copiado. Pégalo en C:\\Jarvis\\memory\\context.md');
+      } catch {
+        showToast('⚠️ No se pudo copiar automáticamente; selecciona manualmente.');
+      }
+    });
+
+    // Checklist interactivo
+    const defaultTodos = [
+      { text: 'Completar URLs de GitHub, LinkedIn y repos locales', done: false },
+      { text: 'Instalar y autenticar agy CLI (Fase 5)', done: false },
+      { text: 'Completar Fase 2 (4 Skills en .agents/skills/)', done: false },
+      { text: 'Completar Fase 3 (MCPs: filesystem, terminal, Playwright)', done: false },
+      { text: 'Completar Fase 4 (Arranque automático start_jarvis.ps1)', done: false },
+      { text: 'Completar Fase 5 (Puente de voz RTX 4060 + edge-tts)', done: false }
+    ];
+    let todos = JSON.parse(localStorage.getItem('helena_todos') || 'null') || defaultTodos;
+
+    function renderTodos() {
+      const list = document.getElementById('todoList');
+      list.innerHTML = '';
+      todos.forEach((item, idx) => {
+        const div = document.createElement('label');
+        div.className = 'todo-item' + (item.done ? ' checked' : '');
+        div.innerHTML = `<input type="checkbox" ${item.done ? 'checked' : ''} /><span>${item.text}</span>`;
+        div.querySelector('input').addEventListener('change', e => {
+          todos[idx].done = e.target.checked;
+          localStorage.setItem('helena_todos', JSON.stringify(todos));
+          renderTodos();
+        });
+        list.appendChild(div);
+      });
+      const doneCount = todos.filter(t => t.done).length;
+      document.getElementById('todoCount').textContent = `${doneCount}/${todos.length}`;
+    }
+    renderTodos();
+
+    document.getElementById('btnAddTodo').addEventListener('click', () => {
+      const inp = document.getElementById('newTodo');
+      const val = inp.value.trim();
+      if (!val) return;
+      todos.push({ text: val, done: false });
+      localStorage.setItem('helena_todos', JSON.stringify(todos));
+      inp.value = '';
+      renderTodos();
+    });
+
+    // Fondo animado de red de nodos (sutil y ligero)
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, pts;
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      pts = Array.from({ length: 42 }, () => ({
+        x: Math.random() * w, y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.45, vy: (Math.random() - 0.5) * 0.45
+      }));
+    }
+    window.addEventListener('resize', resize);
+    resize();
+    function loop() {
+      ctx.clearRect(0, 0, w, h);
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2); ctx.fill();
+        for (let j = i + 1; j < pts.length; j++) {
+          const q = pts[j];
+          const d = Math.hypot(p.x - q.x, p.y - q.y);
+          if (d < 130) {
+            ctx.strokeStyle = `rgba(56, 189, 248, ${(1 - d / 130) * 0.22})`;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>
