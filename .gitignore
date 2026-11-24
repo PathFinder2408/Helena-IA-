@@ -1,0 +1,32 @@
+# Secretos y configuración personal
+.env
+*.bak
+HELENA_OFF
+JARVIS_OFF
+
+# Entornos, cachés y compilados
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Logs, audios y huellas biométricas
+logs/
+*.log
+*.wav
+*.mp3
+memory/voice_profile.pkl
+memory/voice_choice.txt
+
+# Memoria y estado personal del usuario (versionar solo *.example.md)
+memory/context.md
+memory/inbox.md
+memory/TODO.md
+memory/progress.md
+memory/task_queue.md
+memory/helena_training.md
+
+# Scripts legados locales
+scripts/start_jarvis.ps1

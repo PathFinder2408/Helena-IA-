@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "updated": "2026-11-22",
+  "workspace": "C:\\Jarvis",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "summary": "Reglas globales de operación de Helena (eficiencia, memoria, calidad, seguridad y formato de cierre).",
+      "exports": ["rules"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "CONTEXT.md",
+      "summary": "Mapa vivo del proyecto: propósito, stack, archivos, decisiones, estado, comandos y deuda técnica.",
+      "exports": ["project_context"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "summary": "Registro cronológico de cambios (fecha, qué, por qué).",
+      "exports": ["changelog"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": ".helena/lessons.md",
+      "summary": "Errores corregidos y lecciones técnicas aprendidas para consultar al inicio de cada sesión.",
+      "exports": ["lessons"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "scripts/voice_bridge.py",
+      "summary": "Puente de voz v3: wake word, PTT, Whisper CUDA, cerebro híbrido (agy/Gemini/Ollama) y TTS en RAM.",
+      "exports": ["BrainClient", "speak_in_ram", "load_whisper", "record_until_silence", "run_self_test", "main"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "scripts/task_runner.py",
+      "summary": "Motor asíncrono de ingeniería sobre proyectos: estado, chequeos en segundo plano, delegación a Antigravity (agy/IDE) e inicializador de memoria Helena.",
+      "exports": ["find_project_dir", "detect_stack", "get_project_status", "init_helena_memory", "AsyncTaskManager", "TASK_MANAGER"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "scripts/voice_tools.py",
+      "summary": "24 herramientas reales de PC e ingeniería con lista blanca segura y enrutador instantáneo.",
+      "exports": ["TOOL_REGISTRY", "GEMINI_TOOL_FUNCS", "OLLAMA_TOOLS", "execute_tool", "try_instant_action"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "Modelfile.helena",
+      "summary": "Definición del modelo Ollama personalizado helena:latest (sobre qwen2.5:7b) con tono humano, rutas reales y delegación a Antigravity.",
+      "exports": ["helena:latest"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "scripts/context_monitor.py",
+      "summary": "Monitor ligero Win32 de ventana activa (fullscreen, meeting, focus, casual) para auto-ocultar o atenuar el avatar.",
+      "exports": ["ActiveContext", "get_active_context"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "scripts/soul_avatar.py",
+      "summary": "Avatar flotante HiDPI estilo OOOOO (Elio) en PyQt6 con circuitos, física líquida, system tray e inteligencia contextual.",
+      "exports": ["AvatarBridge", "OooooAvatarWindow", "paint_ooooo", "run_avatar_app", "render_snapshot"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "scripts/voice_profile.py",
+      "summary": "Huella vocal 56-dim y clasificador personalizado de wake word sobre embeddings ONNX.",
+      "exports": ["VoiceProfile", "extract_speaker_vector", "flatten_wake_window", "PROFILE_PATH"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "scripts/train_voice.py",
+      "summary": "Entrenador interactivo en RAM (~60 s) para wake word y reconocimiento de voz del usuario.",
+      "exports": ["build_and_save_profile", "run_dry_run", "main"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "scripts/start_helena.ps1",
+      "summary": "Script de arranque automático en segundo plano (Ollama serve, Antigravity opcional, pythonw voice_bridge; respeta HELENA_OFF).",
+      "exports": ["-DryRun", "-NoIDE", "-Help"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "scripts/mcp_powershell.mjs",
+      "summary": "Servidor MCP stdio para PowerShell con lista blanca segura y confirmación explícita.",
+      "exports": ["run_powershell"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "dashboard.html",
+      "summary": "Panel visual HUD autocontenido con reloj local, diagnóstico, perfil editable y checklist.",
+      "exports": ["dashboard_ui"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": "Encender_Helena.bat",
+      "summary": "Lanzador de 1 clic que borra HELENA_OFF/JARVIS_OFF y dispara start_jarvis.ps1.",
+      "exports": ["launcher"],
+      "updated": "2026-11-22"
+    },
+    {
+      "path": ".agents/skills/",
+      "summary": "9 skills bajo demanda (daily-briefing, pc-operator, dev-copilot, memory-manager, git-workflow, code-review-qa, api-db-inspector, automation-builder, career-docs-engineer).",
+      "exports": ["briefing.ps1", "pc_status.ps1", "dev_check.ps1", "mem_append.ps1", "git_audit.ps1", "qa_scan.ps1", "api_probe.ps1", "auto_scaffold.ps1", "repo_summary.ps1"],
+      "updated": "2026-11-22"
+    }
+  ]
+}

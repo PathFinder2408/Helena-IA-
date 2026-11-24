@@ -1,0 +1,31 @@
+# Dependencias y entornos
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Logs y cachés
+logs/
+*.log
+.cache/
+.pytest_cache/
+
+# Binarios, modelos y multimedia pesados
+*.exe
+*.dll
+*.bin
+*.onnx
+*.pt
+*.pth
+*.safetensors
+*.wav
+*.mp3
+*.mp4
+*.zip
+*.tar.gz
+*.7z
+
+# Secretos y control de versiones
+.env
+.git/
